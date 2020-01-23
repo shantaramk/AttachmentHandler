@@ -49,7 +49,7 @@ class AttachmentHandler: NSObject {
             let cancelAction: UIAlertAction = UIAlertAction(title: LocalizedStringConstant.cameraCancel, style: .cancel) { _ -> Void in
             }
             self.actionSheetController!.addAction(cancelAction)
-
+            
         }
         
         switch attachmentMenu {
@@ -96,11 +96,13 @@ class AttachmentHandler: NSObject {
     }
     
     func openCamera() {
-        if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            let myPickerController = UIImagePickerController()
-            myPickerController.delegate = self
-            myPickerController.sourceType = .camera
-            currentVC?.present(myPickerController, animated: true, completion: nil)
+        DispatchQueue.main.async { () -> Void in
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                let myPickerController = UIImagePickerController()
+                myPickerController.delegate = self
+                myPickerController.sourceType = .camera
+                self.currentVC?.present(myPickerController, animated: true, completion: nil)
+            }
         }
     }
     
@@ -121,15 +123,20 @@ class AttachmentHandler: NSObject {
         case .denied, .restricted:
             self.addAlertForSettings(attachmentTypeEnum: .camera)
             return
+            
+        @unknown default:
+            break
         }
     }
     
     func photoLibrary() {
-        if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
-            let myPickerController = UIImagePickerController()
-            myPickerController.delegate = self
-            myPickerController.sourceType = .photoLibrary
-            currentVC?.present(myPickerController, animated: true, completion: nil)
+        DispatchQueue.main.async { () -> Void in
+            if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
+                let myPickerController = UIImagePickerController()
+                myPickerController.delegate = self
+                myPickerController.sourceType = .photoLibrary
+                self.currentVC?.present(myPickerController, animated: true, completion: nil)
+            }
         }
     }
     
@@ -155,24 +162,32 @@ class AttachmentHandler: NSObject {
                     self.videoLibrary()
                 }
             })
+            
+        @unknown default:
+            break
         }
     }
     
     func videoLibrary() {
-        if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
-            let myPickerController = UIImagePickerController()
-            myPickerController.delegate = self
-            myPickerController.sourceType = .photoLibrary
-            myPickerController.mediaTypes = [kUTTypeMovie as String, kUTTypeVideo as String]
-            currentVC?.present(myPickerController, animated: true, completion: nil)
+        DispatchQueue.main.async { () -> Void in
+            
+            if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
+                let myPickerController = UIImagePickerController()
+                myPickerController.delegate = self
+                myPickerController.sourceType = .photoLibrary
+                myPickerController.mediaTypes = [kUTTypeMovie as String, kUTTypeVideo as String]
+                self.currentVC?.present(myPickerController, animated: true, completion: nil)
+            }
         }
     }
     
     func documentPicker() {
-        let importMenu = UIDocumentMenuViewController(documentTypes: [String(kUTTypePDF)], in: .import)
-        importMenu.delegate = self
-        importMenu.modalPresentationStyle = .formSheet
-        currentVC?.present(importMenu, animated: true, completion: nil)
+        DispatchQueue.main.async { () -> Void in
+            let importMenu = UIDocumentMenuViewController(documentTypes: [String(kUTTypePDF)], in: .import)
+            importMenu.delegate = self
+            importMenu.modalPresentationStyle = .formSheet
+            self.currentVC?.present(importMenu, animated: true, completion: nil)
+        }
     }
 }
 
@@ -181,12 +196,11 @@ class AttachmentHandler: NSObject {
 extension AttachmentHandler {
     
     func addAlertForSettings(attachmentTypeEnum: AttachmentType) {
-        let alertView = AlertView(message: LocalizedStringConstant.cameraAccessMessage, okButtonText: LocalizedStringConstant.gotoSettting, cancelButtonText: LocalizedStringConstant.cancel) { (_, button) in
+        GLOBALHELPER.showAlert(LocalizedStringConstant.cameraAccessMessage, okButtonText: LocalizedStringConstant.gotoSettting, cancelButtonText: LocalizedStringConstant.cancel, position: .bottom) { (_, button) in
             if button == .other {
                 UIApplication.shared.open(URL.init(string: UIApplication.openSettingsURLString)!, options: [:], completionHandler: nil)
             }
         }
-        alertView.show(animated: true)
     }
     
 }
